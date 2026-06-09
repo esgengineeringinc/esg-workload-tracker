@@ -236,6 +236,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text
 <div style="background:#fff;border-bottom:1.5px solid var(--border);padding:0 28px;display:flex;">
   <button class="page-tab active" id="ptab-list" onclick="showPage('list')">📋 Workload</button>
   <button class="page-tab" id="ptab-cal" onclick="showPage('cal')">📅 Calendar</button>
+  <button class="page-tab" id="ptab-pr" onclick="showPage('pr')">📋 Plan Reviews</button>
+  <button class="page-tab" id="ptab-ai" onclick="showPage('ai')">🤖 AI Assistant</button>
 </div>
 
 <!-- WORKLOAD PAGE -->
@@ -256,6 +258,86 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text
     <div class="cal-dow">Wed</div><div class="cal-dow">Thu</div><div class="cal-dow">Fri</div><div class="cal-dow">Sat</div>
   </div>
   <div class="cal-grid" id="calGrid"></div>
+</div>
+
+<!-- PLAN REVIEWS PAGE -->
+<div id="page-pr" style="display:none;padding:20px 28px 60px;">
+  <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;">
+    <h2 style="font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;">Plan Reviews</h2>
+    <button onclick="openNewReviewModal()" style="background:#1a9e75;border:none;border-radius:8px;height:34px;padding:0 16px;color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;margin-left:auto;">+ New Review</button>
+  </div>
+  <div id="prGrid"></div>
+</div>
+
+<!-- NEW REVIEW MODAL -->
+<div class="modal-bg" id="prModal" style="display:none;">
+  <div class="modal-box" style="width:420px;">
+    <h2 style="margin-bottom:6px;">New Plan Review</h2>
+    <p style="margin-bottom:20px;font-size:13px;color:var(--text2);">Add a new plan review project</p>
+    <label>Client</label>
+    <select id="prClient" style="margin-bottom:12px;">
+      <option value="">— Select client —</option>
+      <option>City of Commerce</option>
+      <option>City of Thomaston</option>
+      <option>City of Smiths Station</option>
+      <option>City of Waycross</option>
+    </select>
+    <label>Project / Applicant Name</label>
+    <input id="prProject" placeholder="e.g. Orchard Hills Subdivision" style="margin-bottom:12px;"/>
+    <label>Reviewer</label>
+    <select id="prReviewer" style="margin-bottom:12px;">
+      <option value="">— Select engineer —</option>
+      <option>Trevor</option><option>Kristen</option><option>Drew</option><option>Evan</option>
+      <option>Madelyn</option><option>Denise</option><option>Trey Crisp</option><option>Austin</option>
+      <option>Daniel</option><option>Andrew</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="document.getElementById('prModal').style.display='none'">Cancel</button>
+      <button class="btn-p teal" onclick="submitNewReview()">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADD SUBMISSION MODAL -->
+<div class="modal-bg" id="subModal" style="display:none;">
+  <div class="modal-box" style="width:420px;">
+    <h2 style="margin-bottom:6px;">Log Submission</h2>
+    <p style="margin-bottom:20px;font-size:13px;color:var(--text2);" id="subModalTitle"></p>
+    <label>Submission #</label>
+    <input id="subNum" placeholder="e.g. 1, 2, Pre-Dev 1" style="margin-bottom:12px;"/>
+    <label>Date Received</label>
+    <input id="subDateIn" type="date" style="margin-bottom:12px;"/>
+    <label>Date Comments Sent</label>
+    <input id="subDateOut" type="date" style="margin-bottom:12px;"/>
+    <label>Comment Email Link (optional)</label>
+    <input id="subLink" placeholder="Paste Outlook or SharePoint link" style="margin-bottom:12px;"/>
+    <label>Status</label>
+    <select id="subStatus" style="margin-bottom:12px;">
+      <option value="Pending Review">Pending Review</option>
+      <option value="Comments Sent">Comments Sent</option>
+      <option value="Waiting on Resubmittal">Waiting on Resubmittal</option>
+      <option value="Waiting on Utility Sheet">Waiting on Utility Sheet</option>
+      <option value="Approved">Approved</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn-s" onclick="document.getElementById('subModal').style.display='none'">Cancel</button>
+      <button class="btn-p teal" onclick="submitNewSub()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- AI ASSISTANT PAGE -->
+<div id="page-ai" style="display:none;padding:20px 28px 60px;">
+  <div style="max-width:720px;margin:0 auto;">
+    <h2 style="font-size:20px;font-weight:800;color:var(--navy);letter-spacing:-0.02em;margin-bottom:4px;">AI Assistant</h2>
+    <p style="font-size:13px;color:var(--text2);margin-bottom:20px;">Tell me what to update in plain English. I'll make the changes live.</p>
+    <div id="aiMessages" style="background:#fff;border:1.5px solid var(--border);border-radius:12px;min-height:300px;max-height:480px;overflow-y:auto;padding:16px;margin-bottom:12px;display:flex;flex-direction:column;gap:12px;"></div>
+    <div style="display:flex;gap:8px;">
+      <input id="aiInput" placeholder="e.g. Mark Evan's Commerce PER as complete… move all of Kristen's overdue tasks to next week…" style="flex:1;border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;font-size:13px;font-family:inherit;outline:none;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAI();}"/>
+      <button onclick="sendAI()" style="background:#1a9e75;border:none;border-radius:9px;padding:0 20px;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;">Send</button>
+    </div>
+    <p style="font-size:11px;color:var(--text3);margin-top:8px;">Examples: "Add a task for Trevor on Opelika FM, cost estimate, due end of July" · "Move Drew's Glendale tasks to next week" · "Mark Austin's Tiger Creek specs as 100%"</p>
+  </div>
 </div>
 
 <!-- TASK POPUP -->
@@ -781,11 +863,13 @@ subscribeRealtime();
 
 // ── PAGE SWITCHING ────────────────────────────────────────────────
 function showPage(p){
-  document.getElementById('page-list').style.display = p==='list' ? '' : 'none';
-  document.getElementById('page-cal').style.display  = p==='cal'  ? '' : 'none';
-  document.getElementById('ptab-list').classList.toggle('active', p==='list');
-  document.getElementById('ptab-cal').classList.toggle('active',  p==='cal');
+  ['list','cal','pr','ai'].forEach(id=>{
+    document.getElementById('page-'+id).style.display = p===id ? '' : 'none';
+    const tab = document.getElementById('ptab-'+id);
+    if(tab) tab.classList.toggle('active', p===id);
+  });
   if(p==='cal') renderCalendar();
+  if(p==='pr') renderPlanReviews();
 }
 
 // ── CALENDAR ──────────────────────────────────────────────────────
@@ -940,6 +1024,247 @@ document.addEventListener('click', e => {
   const pop = document.getElementById('taskPopup');
   if(pop.style.display !== 'none' && !pop.contains(e.target)) pop.style.display = 'none';
 });
+
+// ── PLAN REVIEWS ─────────────────────────────────────────────────
+const PR_CLIENTS = ['City of Commerce','City of Thomaston','City of Smiths Station','City of Waycross'];
+const PR_CLIENT_COLOR = {'City of Commerce':'#e65100','City of Thomaston':'#2e7d32','City of Smiths Station':'#37474f','City of Waycross':'#f57f17'};
+const PR_CLIENT_ICON = {'City of Commerce':'⚙️','City of Thomaston':'🏛','City of Smiths Station':'🔧','City of Waycross':'🏘'};
+
+let planReviews = [
+  {id:'pr1',client:'City of Commerce',project:'Orchard Hills',reviewer:'Evan',status:'Active',submissions:[
+    {num:'1',dateIn:'2026-05-11',dateOut:'2026-05-12',link:null,status:'Comments Sent'}
+  ]},
+  {id:'pr2',client:'City of Commerce',project:'738 Homer Rd',reviewer:'Evan',status:'Active',submissions:[
+    {num:'3',dateIn:'2026-05-29',dateOut:'2026-05-29',link:null,status:'Comments Sent'}
+  ]},
+  {id:'pr3',client:'City of Commerce',project:'Commerce Crossroads',reviewer:'Austin',status:'Active',submissions:[
+    {num:'2',dateIn:'2026-04-17',dateOut:null,link:null,status:'Waiting on Utility Sheet'}
+  ]},
+  {id:'pr4',client:'City of Commerce',project:"Parcel 034A 005 – Neighbor's Market",reviewer:'Evan',status:'Active',submissions:[
+    {num:'3',dateIn:'2026-04-17',dateOut:'2026-06-09',link:null,status:'Comments Sent',notes:'Comments sent to Andrew 6/9/26 — not resubmitted yet'}
+  ]},
+  {id:'pr5',client:'City of Thomaston',project:'1082 US-19 – Peachtree Immediate Care',reviewer:'Austin',status:'Active',submissions:[
+    {num:'1',dateIn:'2026-05-20',dateOut:'2026-06-05',link:null,status:'Comments Sent'}
+  ]},
+  {id:'pr6',client:'City of Thomaston',project:'Valvoline',reviewer:'Austin',status:'Active',submissions:[
+    {num:'1',dateIn:'2026-05-27',dateOut:'2026-06-05',link:null,status:'Comments Sent'}
+  ]},
+  {id:'pr7',client:'City of Smiths Station',project:"O'Reilly's",reviewer:'Andrew',status:'Active',submissions:[
+    {num:'Pre-Dev 1',dateIn:'2026-06-01',dateOut:null,link:null,status:'Pending Review'}
+  ]},
+];
+let activePrId = null;
+
+function renderPlanReviews(){
+  const grid = document.getElementById('prGrid');
+  grid.innerHTML = '';
+  PR_CLIENTS.forEach(client=>{
+    const reviews = planReviews.filter(r=>r.client===client);
+    if(!reviews.length) return;
+    const color = PR_CLIENT_COLOR[client]||'#1565c0';
+    const icon = PR_CLIENT_ICON[client]||'🏛';
+    const section = document.createElement('div');
+    section.style.cssText = 'margin-bottom:28px;';
+    section.innerHTML = `<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
+      <span style="font-size:18px;">${icon}</span>
+      <span style="font-size:15px;font-weight:800;color:var(--navy);">${client}</span>
+      <span style="font-size:12px;color:var(--text3);">${reviews.length} review${reviews.length!==1?'s':''}</span>
+    </div>`;
+    const cards = document.createElement('div');
+    cards.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:12px;';
+    reviews.forEach(r=>{
+      const card = document.createElement('div');
+      card.style.cssText = `background:#fff;border:1.5px solid ${color}40;border-radius:12px;overflow:hidden;`;
+      const latestSub = r.submissions[r.submissions.length-1];
+      const roundLabel = latestSub ? `Round ${r.submissions.length}` : 'No submissions yet';
+      const statusColor = r.status==='Approved'?'#2e7d32':latestSub?.status==='Comments Sent'?'#e65100':'#f57f17';
+      const statusBg = r.status==='Approved'?'#d1fae5':latestSub?.status==='Comments Sent'?'#fff3e0':'#fffde7';
+      const displayStatus = r.status==='Approved'?'Approved':(latestSub?.status||'No Activity');
+      card.innerHTML = `
+        <div style="background:${color};padding:10px 14px;display:flex;align-items:center;gap:8px;">
+          <div style="flex:1;">
+            <div style="font-size:13px;font-weight:700;color:#fff;">${r.project}</div>
+            <div style="font-size:11px;color:rgba(255,255,255,0.7);">Reviewer: ${r.reviewer} · ${roundLabel}</div>
+          </div>
+          <span style="font-size:10px;font-weight:700;background:rgba(255,255,255,0.2);color:#fff;padding:2px 8px;border-radius:99px;">${displayStatus}</span>
+        </div>
+        <div style="padding:10px 14px;">
+          ${r.submissions.length ? r.submissions.map((s,i)=>`
+            <div style="display:grid;grid-template-columns:80px 1fr 1fr 80px;gap:8px;align-items:center;padding:6px 0;border-bottom:1px solid var(--surface);font-size:12px;">
+              <span style="font-weight:600;color:var(--navy);">Sub #${s.num||i+1}</span>
+              <span style="color:var(--text2);">${s.dateIn ? 'In: '+new Date(s.dateIn+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'}) : 'In: —'}</span>
+              <span>${s.dateOut ? (s.link ? `<a href="${s.link}" target="_blank" style="color:#2a7fc1;font-weight:600;text-decoration:none;">Out: ${new Date(s.dateOut+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})} ↗</a>` : `Out: ${new Date(s.dateOut+'T00:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'})}`) : '<span style="color:var(--text3);">Out: pending</span>'}</span>
+              <span style="font-size:10px;font-weight:700;padding:2px 6px;border-radius:99px;background:${statusBg};color:${statusColor};text-align:center;">${s.status}</span>
+            </div>`).join('') : '<div style="font-size:12px;color:var(--text3);padding:6px 0;">No submissions logged yet</div>'}
+          <div style="display:flex;gap:6px;margin-top:10px;">
+            <button onclick="openSubModal('${r.id}')" style="flex:1;background:var(--surface);border:1.5px solid var(--border);border-radius:7px;padding:6px;font-size:11px;font-weight:600;font-family:inherit;color:var(--text2);cursor:pointer;">+ Log Submission</button>
+            ${r.status!=='Approved'?`<button onclick="approveReview('${r.id}')" style="background:#d1fae5;border:1.5px solid #a5d6a7;border-radius:7px;padding:6px 10px;font-size:11px;font-weight:600;font-family:inherit;color:#2e7d32;cursor:pointer;">✓ Approve</button>`:''}
+          </div>
+        </div>`;
+      cards.appendChild(card);
+    });
+    section.appendChild(cards);
+    grid.appendChild(section);
+  });
+}
+
+let activePrForSub = null;
+function openSubModal(prId){
+  activePrForSub = prId;
+  const r = planReviews.find(x=>x.id===prId);
+  document.getElementById('subModalTitle').textContent = r.project + ' — ' + r.client;
+  document.getElementById('subNum').value = r.submissions.length + 1;
+  document.getElementById('subDateIn').value = '';
+  document.getElementById('subDateOut').value = '';
+  document.getElementById('subLink').value = '';
+  document.getElementById('subStatus').value = 'Pending Review';
+  document.getElementById('subModal').style.display = 'flex';
+}
+function submitNewSub(){
+  const r = planReviews.find(x=>x.id===activePrForSub);
+  if(!r) return;
+  r.submissions.push({
+    num: document.getElementById('subNum').value,
+    dateIn: document.getElementById('subDateIn').value||null,
+    dateOut: document.getElementById('subDateOut').value||null,
+    link: document.getElementById('subLink').value||null,
+    status: document.getElementById('subStatus').value,
+  });
+  document.getElementById('subModal').style.display = 'none';
+  renderPlanReviews();
+}
+function approveReview(prId){
+  const r = planReviews.find(x=>x.id===prId);
+  if(r){ r.status='Approved'; if(r.submissions.length) r.submissions[r.submissions.length-1].status='Approved'; renderPlanReviews(); }
+}
+function openNewReviewModal(){ document.getElementById('prModal').style.display='flex'; }
+function submitNewReview(){
+  const client = document.getElementById('prClient').value;
+  const project = document.getElementById('prProject').value.trim();
+  const reviewer = document.getElementById('prReviewer').value;
+  if(!client||!project||!reviewer) return;
+  planReviews.push({id:'pr'+Date.now(),client,project,reviewer,status:'Active',submissions:[]});
+  document.getElementById('prModal').style.display='none';
+  renderPlanReviews();
+}
+
+// ── AI ASSISTANT ──────────────────────────────────────────────────
+function addAIMessage(role, text){
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.style.cssText = role==='user'
+    ? 'align-self:flex-end;background:var(--navy);color:#fff;padding:10px 14px;border-radius:12px 12px 3px 12px;max-width:85%;font-size:13px;line-height:1.5;'
+    : 'align-self:flex-start;background:var(--surface);color:var(--text);padding:10px 14px;border-radius:12px 12px 12px 3px;max-width:85%;font-size:13px;line-height:1.5;border:1px solid var(--border);';
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addAIThinking(){
+  const msgs = document.getElementById('aiMessages');
+  const div = document.createElement('div');
+  div.id = 'aiThinking';
+  div.style.cssText = 'align-self:flex-start;background:var(--surface);color:var(--text3);padding:10px 14px;border-radius:12px 12px 12px 3px;font-size:13px;border:1px solid var(--border);';
+  div.textContent = 'Thinking…';
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+}
+
+function removeAIThinking(){
+  const el = document.getElementById('aiThinking');
+  if(el) el.remove();
+}
+
+async function sendAI(){
+  const input = document.getElementById('aiInput');
+  const msg = input.value.trim();
+  if(!msg) return;
+  input.value = '';
+  addAIMessage('user', msg);
+  addAIThinking();
+
+  // Build task summary for context
+  const taskSummary = tasks.slice(0,80).map(t=>`ID:${t.id} | ${t.eng} | ${t.proj} | ${t.task} | status:${t.status} | due:${t.due} | due_date:${t.due_date||'null'}`).join('\n');
+
+  const systemPrompt = `You are a workload tracker assistant for ESG Engineering, a civil/water engineering firm. You help update task data based on natural language commands.
+
+The current tasks (first 80) are:
+${taskSummary}
+
+Engineers: Trevor, Kristen, Drew, Evan, Madelyn, Denise, Trey Crisp, Austin, Daniel, Andrew
+PMs: Andrew, Charlie, Kristen, Trey Crisp, Evan, Trey Gavin
+Clients: City of Opelika, City of Thomaston, City of Douglas, City of Perry, Ft Valley Utility Commission, Prairie View A&M, City of Waycross, City of Commerce, City of Flowery Branch, City of Forsyth, Fort Benning, City of Smiths Station, City of Jasper, EPWSA, City of Warner Robins, City of Fayetteville AR, City of Burbank, City of Winder, City of Tifton, City of Fort Valley, City of Eatonton, City of Moultrie
+
+When the user gives you a command, respond with:
+1. A brief plain-English confirmation of what you're doing (1-2 sentences)
+2. Then a JSON block in this exact format:
+<updates>
+[{"id": 123, "fields": {"status": "100%", "due": "End of July", "due_date": "2026-07-31"}}, ...]
+</updates>
+
+For due dates, convert fuzzy labels to real dates (YYYY-MM-DD):
+- "This week" / "End of week" = next Friday
+- "Next week" = Friday after that
+- "End of June" = 2026-06-26
+- "End of July" = 2026-07-31
+- "End of August" = 2026-08-28
+- "Mid July" = 2026-07-15
+- "TBD" = null
+
+If the command is a question (not an update), just answer it in plain text with no JSON.
+If you can't confidently match the task, say so and ask for clarification.
+Never make up task IDs. Only use IDs from the list above.`;
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-20250514',
+        max_tokens: 1000,
+        system: systemPrompt,
+        messages: [{role:'user', content: msg}]
+      })
+    });
+    const data = await response.json();
+    removeAIThinking();
+    const text = data.content?.[0]?.text || 'Sorry, something went wrong.';
+
+    // Parse and apply updates if present
+    const match = text.match(/<updates>([\s\S]*?)<\/updates>/);
+    const displayText = text.replace(/<updates>[\s\S]*?<\/updates>/g,'').trim();
+    addAIMessage('assistant', displayText);
+
+    if(match){
+      try{
+        const updates = JSON.parse(match[1].trim());
+        let count = 0;
+        for(const u of updates){
+          const t = tasks.find(x=>x.id===u.id||x.id===parseInt(u.id));
+          if(t){
+            Object.assign(t, u.fields);
+            await saveTask(t.id, u.fields);
+            count++;
+          }
+        }
+        if(count>0){
+          render();
+          addAIMessage('assistant', `✓ Updated ${count} task${count!==1?'s':''} in the database.`);
+        }
+      } catch(e){ console.error('Parse error:',e); }
+    }
+  } catch(err){
+    removeAIThinking();
+    addAIMessage('assistant', 'Connection error. Please try again.');
+    console.error(err);
+  }
+}
+
+// Show welcome message in AI tab
+setTimeout(()=>{
+  addAIMessage('assistant', "Hi! I can update your workload tracker from plain English. Try something like:\n\n• \"Mark Evan's Commerce PER as complete\"\n• \"Move all of Kristen's overdue tasks to next week\"\n• \"Add a task for Trevor on Opelika FM, cost estimate, due end of July\"\n• \"What does Austin have due this week?\"");
+}, 500);
+
 </script>
 </body>
 </html>
