@@ -549,6 +549,8 @@ function renderStep(){
       +'<span id="newProjBadge" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:700;color:#1a9e75;background:#d1fae5;padding:2px 7px;border-radius:99px;pointer-events:none;white-space:nowrap;">✦ NEW</span>'
       +'</div>'
       +existingSection;
+  } else {
+    inner=`<label>${s.label}</label><input id="mf" value="${newTask[s.key]||''}" placeholder="${s.placeholder||''}" style="width:100%;border:1.5px solid #d5e5f0;border-radius:9px;padding:10px 14px;font-size:14px;font-family:inherit;color:#0b1e30;outline:none;background:#fff;"/>`;
   }
   const isLast=stepIdx===STEPS.length-1;
   document.getElementById('msteps').innerHTML=`<h2 style="margin-bottom:6px;">New task</h2><p style="margin-bottom:18px;">Step ${stepIdx+1} of ${STEPS.length}</p>${inner}<div class="modal-actions" style="margin-top:16px;">${stepIdx>0?`<button class="btn-s" onclick="mBack()">← Back</button>`:`<button class="btn-s" onclick="closeAddModal()">Cancel</button>`}<button class="btn-p${isLast?' teal':''}" onclick="mNext()">${isLast?'Add task':'Next →'}</button></div>`;
