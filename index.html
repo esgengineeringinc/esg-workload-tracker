@@ -354,6 +354,10 @@ body{font-family:'DM Sans',sans-serif;background:var(--surface);color:var(--text
       <button onclick="sendAI()" style="background:#1a9e75;border:none;border-radius:9px;padding:0 20px;color:#fff;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer;white-space:nowrap;">Send</button>
     </div>
     <p style="font-size:11px;color:var(--text3);margin-top:8px;">Examples: "Add a task for Trevor on Opelika FM, cost estimate, due end of July" · "Move Drew's Glendale tasks to next week" · "Mark Austin's Tiger Creek specs as 100%"</p>
+    <div style="margin-top:20px;padding-top:16px;border-top:1.5px solid var(--border);display:flex;align-items:center;gap:12px;">
+      <button onclick="sendTestDigest()" id="testDigestBtn" style="background:#0277bd;border:none;border-radius:9px;height:36px;padding:0 18px;color:#fff;font-size:12px;font-weight:700;font-family:inherit;cursor:pointer;">📧 Send test digest (Evan + Andrew)</button>
+      <span id="testDigestStatus" style="font-size:12px;color:var(--text2);"></span>
+    </div>
   </div>
 </div>
 
@@ -531,10 +535,20 @@ function renderStep(){
   if(s.type==='select'){
     inner=`<label>${s.label}</label><select id="mf"><option value="">— Select —</option>${s.opts.map(o=>`<option value="${o}"${newTask[s.key]===o?' selected':''}>${o}</option>`).join('')}</select>`;
   } else if(s.type==='proj'){
-  } else if(s.type==='proj'){
     const projs=[...new Set(tasks.filter(t=>t.client===newTask.client).map(t=>t.proj))].sort();
-    inner=`<label>${s.label}</label><div style="position:relative;margin-bottom:8px;"><input id="mf" value="${newTask[s.key]||''}" placeholder="Type to create new project..." oninput="updateProjBadge()" style="width:100%;border:1.5px solid var(--border);border-radius:9px;padding:10px 14px;font-size:14px;font-family:inherit;color:var(--text);outline:none;background:#fff;"/><span id="newProjBadge" style="display:none;position:absolute;right:10px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:#1a9e75;background:#d1fae5;padding:2px 8px;border-radius:99px;pointer-events:none;">NEW PROJECT</span></div>${projs.length?'<div style="margin-bottom:4px;font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;">Existing — click to select</div><div style="margin-bottom:12px;display:flex;flex-wrap:wrap;gap:5px;">'+projs.map(p=>'<span onclick="document.getElementById(\'mf\').value=\''+p.replace(/'/g,"\\'")+'\';updateProjBadge();" style="font-size:11px;color:#1565c0;cursor:pointer;background:#e8f3fb;padding:2px 8px;border-radius:99px;">'+p+'</span>').join('')+'</div>':'<div style="font-size:12px;color:var(--text3);margin-bottom:12px;font-style:italic;">No existing projects for this client — type a new name above.</div>'}`;
-    inner=`<label>${s.label}</label><input id="mf" value="${newTask[s.key]||''}" placeholder="${s.placeholder||''}"/>`;
+    const existingChips=projs.map(p=>{
+      const safe=p.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+      return '<span onclick="document.getElementById(\'mf\').value=\''+safe+'\';updateProjBadge();" style="font-size:11px;color:#1565c0;cursor:pointer;background:#e8f3fb;padding:2px 8px;border-radius:99px;margin:2px;">'+p+'</span>';
+    }).join('');
+    const existingSection=projs.length
+      ? '<div style="margin-bottom:4px;font-size:10px;font-weight:600;color:#90aabb;letter-spacing:0.05em;text-transform:uppercase;">Existing — click to select</div><div style="display:flex;flex-wrap:wrap;gap:4px;margin-bottom:12px;">'+existingChips+'</div>'
+      : '<p style="font-size:12px;color:#90aabb;font-style:italic;margin-bottom:12px;">No existing projects for this client — type a new name above.</p>';
+    inner='<label>'+s.label+'</label>'
+      +'<div style="position:relative;margin-bottom:10px;">'
+      +'<input id="mf" value="'+(newTask[s.key]||'')+'" placeholder="Type to create new project…" oninput="updateProjBadge()" style="width:100%;border:1.5px solid #d5e5f0;border-radius:9px;padding:10px 44px 10px 14px;font-size:14px;font-family:inherit;color:#0b1e30;outline:none;background:#fff;"/>'
+      +'<span id="newProjBadge" style="display:none;position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:9px;font-weight:700;color:#1a9e75;background:#d1fae5;padding:2px 7px;border-radius:99px;pointer-events:none;white-space:nowrap;">✦ NEW</span>'
+      +'</div>'
+      +existingSection;
   }
   const isLast=stepIdx===STEPS.length-1;
   document.getElementById('msteps').innerHTML=`<h2 style="margin-bottom:6px;">New task</h2><p style="margin-bottom:18px;">Step ${stepIdx+1} of ${STEPS.length}</p>${inner}<div class="modal-actions" style="margin-top:16px;">${stepIdx>0?`<button class="btn-s" onclick="mBack()">← Back</button>`:`<button class="btn-s" onclick="closeAddModal()">Cancel</button>`}<button class="btn-p${isLast?' teal':''}" onclick="mNext()">${isLast?'Add task':'Next →'}</button></div>`;
@@ -930,6 +944,20 @@ async function doReassign(newEng){
   t.eng=newEng;
   await saveTask(t.id,{eng:newEng});
   render();
+}
+
+async function sendTestDigest(){
+  const btn=document.getElementById('testDigestBtn');
+  const status=document.getElementById('testDigestStatus');
+  btn.disabled=true;btn.textContent='Sending…';status.textContent='';
+  try{
+    const WORKER_URL='https://esg-plan-review-parser.esgengineeringinc.workers.dev';
+    const res=await fetch(WORKER_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({type:'test_digest'})});
+    const data=await res.json();
+    if(data.success){status.style.color='#1a9e75';status.textContent='✓ Test emails sent to Evan and Andrew!';}
+    else{status.style.color='#b91c1c';status.textContent='Error: '+(data.error||'Unknown error');}
+  }catch(e){status.style.color='#b91c1c';status.textContent='Connection error: '+e.message;}
+  btn.disabled=false;btn.textContent='📧 Send test digest (Evan + Andrew)';
 }
 
 loadTasks();
